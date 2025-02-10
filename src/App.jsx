@@ -5,7 +5,12 @@ import Log from "./components/Log";
 import Player from "./components/Player";
 import { WINNING_COMBINATIONS } from "./winning-combinations";
 
-const initialGameboard = [
+const PLAYERS = {
+  X: "Player 1",
+  O: "Player 2"
+}
+
+const INITIAL_GAMEBOARD = [
   [null, null, null],
   [null, null, null],
   [null, null, null],
@@ -21,17 +26,8 @@ function deriveActivePlayer(turns) {
   return currentPlayer;
 }
 
-function App() {
-
-  const [turns, setTurns] = useState([]);
-  const [players, setPlayers] = useState({
-    X: "Player 1",
-    O: "Player 2"
-  })
-
-  const activePlayer = deriveActivePlayer(turns);
-
-  let gameboard = [...initialGameboard.map(columns => [...columns])];
+function deriveGameboard(turns) {
+  let gameboard = [...INITIAL_GAMEBOARD.map(columns => [...columns])];
 
   for (const turn of turns) {
     const { square, player } = turn;
@@ -40,6 +36,10 @@ function App() {
     gameboard[row][column] = player;
   }
 
+  return gameboard;
+}
+
+function deriveWinner(gameboard, players) {
   let winner = undefined;
 
   for (const combination of WINNING_COMBINATIONS) {
@@ -51,6 +51,18 @@ function App() {
       winner = players[first];
     }
   }
+
+  return winner;
+}
+
+function App() {
+
+  const [turns, setTurns] = useState([]);
+  const [players, setPlayers] = useState(PLAYERS)
+
+  const activePlayer = deriveActivePlayer(turns);
+  const gameboard = deriveGameboard(turns); 
+  const winner = deriveWinner(gameboard, players);
 
   const hasDraw = turns.length === 9 && !winner;
 
@@ -82,8 +94,8 @@ function App() {
     <main>
       <div id="game-container">
         <ol id="players" className="highlight-player">
-          <Player name="Player 1" symbol="X" isActive={activePlayer === "X"} onChangeName={handlePlayername} />
-          <Player name="Player 2" symbol="O" isActive={activePlayer === "O"} onChangeName={handlePlayername} />
+          <Player name={PLAYERS.X} symbol="X" isActive={activePlayer === "X"} onChangeName={handlePlayername} />
+          <Player name={PLAYERS.O} symbol="O" isActive={activePlayer === "O"} onChangeName={handlePlayername} />
         </ol>
         {(winner || hasDraw) && <GameOver winner={winner} onRestart={handleRematch} />}
         <Gameboard
